@@ -42,7 +42,7 @@ bool set(int, int, bool); //setter for bits used like : set(row, index, value)
 int solve(int);           //solves the problem
 
 //for the algorithm
-void fill_holes(int); // fills all holes
+int fill_holes(int); // fills all holes, returns the moves
 void find_leftest(int, struct POS*); //finds leftest chip and assigns it its position
 void find_rightest(int, struct POS*); //finds  rightest chip and assigns it its position
 
@@ -100,14 +100,77 @@ int solve(int size){
   //checking if already won
   if (num_chips(size) == 1) return 0;
 
+  int moves = 0;
   //filling holes
-  fill_holes(size);
+  moves += fill_holes(size);
   //setting the position
   find_leftest(size, &c1);
   find_rightest(size, &c2);
 
+  while (num_chips(size) > 1){
 
-  return 5;
+    //if in row 0
+    if(c1.row == 0){
+      if (get(1, c1.index)){
+        //gotten, now removing
+        set(0, c1.index, 0);
+        c1.row = 1;
+      }else{
+        set(0, c1.index, 0);
+        set(0, c1.index+1, 1);
+        c1.index++;
+      }
+    }
+    else{
+      //in row 1
+      if (get(0, c1.index)){
+        //gotten, now removing
+        set(1, c1.index, 0);
+        c1.row = 0;
+      }else{
+        set(1, c1.index, 0);
+        set(1, c1.index+1, 1);
+        c1.index++;
+      }
+    }
+
+    moves++;
+
+    if(num_chips(size) <= 1) return moves;
+
+    //for c2
+
+    //if in row 0
+    if(c2.row == 0){
+      if (get(1, c2.index)){
+        //gotten, now removing
+        set(0, c2.index, 0);
+        c2.row = 1;
+      }else{
+        set(0, c2.index, 0);
+        set(0, c2.index-1, 1);
+        c2.index--;
+      }
+    }
+    else{
+      //in row 1
+      if (get(0, c2.index)){
+        //gotten, now removing
+        set(1, c2.index, 0);
+        c2.row = 0;
+      }else{
+        set(1, c2.index, 0);
+        set(1, c2.index-1, 1);
+        c2.index--;
+      }
+    }
+
+    moves++;
+
+
+  }
+
+  return moves;
 
 }
 
@@ -158,20 +221,25 @@ bool set(int row, int index, bool value){
   return value;
 }
 
-void fill_holes(int size){
+int fill_holes(int size){
+
+  int back = 0;
 
   for(int i = 0; i < size-2; i++){
 
-    if(get(0, i) && !get(0, i+1) && get(0, i+2) && get(1, i+1)){
+    if(get(0, i) && !get(0, i+1) && get(0, i+2) && get(1, i+1) && !(get(1, i) && get(1, i+2))){
       set(0, i+1, 1);
       set(1, i+1, 0);
+      back++;
     }
-    if(get(1, i) && !get(1, i+1) && get(1, i+2) && get(0, i+1)){
+    if(get(1, i) && !get(1, i+1) && get(1, i+2) && get(0, i+1) && !(get(0, i) && get(0, i+2))){
       set(1, i+1, 1);
       set(0, i+1, 0);
+      back++;
     }
 
   }
+  return back;
 }
 
 void find_leftest(int size, struct POS* P){
